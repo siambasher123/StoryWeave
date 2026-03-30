@@ -86,3 +86,62 @@ struct AnalyticsView: View {
         return "\(rate)%"
     }
 }
+
+// MARK: - Per-story breakdown row
+
+struct AnalyticsRowView: View {
+    let storySession: StorySession
+    let title: String
+
+    private var progress: Double {
+        if storySession.isCompleted { return 1.0 }
+        guard let total = storySession.totalScenes, total > 0 else { return 0 }
+        return min(Double(storySession.visitedSceneIds.count) / Double(total), 1.0)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+                Spacer()
+                if storySession.isCompleted {
+                    Label("Completed", systemImage: "checkmark.seal.fill")
+                        .font(.caption)
+                        .foregroundColor(.green)
+                } else {
+                    Text("In Progress")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.orange)
+                }
+            }
+
+            ProgressView(value: progress)
+                .tint(storySession.isCompleted ? .green : .indigo)
+
+            HStack {
+                Text(
+                    "\(storySession.visitedSceneIds.count) scene\(storySession.visitedSceneIds.count == 1 ? "" : "s") visited"
+                )
+                .font(.caption)
+                .foregroundColor(.secondary)
+
+                Spacer()
+
+                if let total = storySession.totalScenes {
+                    Text("of \(total) total · ")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                Text("\(Int(progress * 100))% explored")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(.vertical, 6)
+    }
+}
