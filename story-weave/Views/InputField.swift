@@ -16,6 +16,7 @@ struct InputField: View {
                 SecureField(placeholder, text: $text)
                     .font(.body)
                     .autocapitalization(.none)
+                    .disableAutocorrection(true)
             } else {
                 TextField(placeholder, text: $text)
                     .font(.body)

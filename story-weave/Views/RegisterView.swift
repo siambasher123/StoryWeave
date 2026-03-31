@@ -29,27 +29,9 @@ struct RegisterView: View {
                 .padding(.bottom, 48)
 
                 VStack(spacing: 16) {
-                    InputField(
-                        icon: "envelope",
-                        placeholder: "Email",
-                        text: $email,
-                        isSecure: false,
-                        keyboardType: .emailAddress
-                    )
-                    InputField(
-                        icon: "lock",
-                        placeholder: "Password",
-                        text: $password,
-                        isSecure: true,
-                        keyboardType: .default
-                    )
-                    InputField(
-                        icon: "lock.rotation",
-                        placeholder: "Confirm Password",
-                        text: $confirmPassword,
-                        isSecure: true,
-                        keyboardType: .default
-                    )
+                    InputField(icon: "envelope", placeholder: "Email", text: $email, isSecure: false, keyboardType: .emailAddress)
+                    InputField(icon: "lock", placeholder: "Password", text: $password, isSecure: true)
+                    InputField(icon: "lock.rotation", placeholder: "Confirm Password", text: $confirmPassword, isSecure: true)
                 }
                 .padding(.horizontal, 24)
 
@@ -62,20 +44,15 @@ struct RegisterView: View {
                         .padding(.top, 12)
                 }
 
-                Button {
-                    register()
-                } label: {
+                Button { register() } label: {
                     ZStack {
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
                             .fill(Color.indigo)
                             .frame(height: 54)
                         if isLoading {
-                            ProgressView()
-                                .tint(.white)
+                            ProgressView().tint(.white)
                         } else {
-                            Text("Create Account")
-                                .font(.headline)
-                                .foregroundColor(.white)
+                            Text("Create Account").font(.headline).foregroundColor(.white)
                         }
                     }
                 }
@@ -83,15 +60,10 @@ struct RegisterView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 24)
 
-                Button {
-                    dismiss()
-                } label: {
+                Button { dismiss() } label: {
                     HStack(spacing: 4) {
-                        Text("Already have an account?")
-                            .foregroundColor(.secondary)
-                        Text("Log In")
-                            .fontWeight(.semibold)
-                            .foregroundColor(.indigo)
+                        Text("Already have an account?").foregroundColor(.secondary)
+                        Text("Log In").fontWeight(.semibold).foregroundColor(.indigo)
                     }
                     .font(.subheadline)
                 }
@@ -101,13 +73,26 @@ struct RegisterView: View {
         .navigationBarHidden(true)
     }
 
+    private func isValidEmail(_ value: String) -> Bool {
+        let predicate = NSPredicate(format: "SELF MATCHES %@", "[A-Z0-9a-z._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}")
+        return predicate.evaluate(with: value)
+    }
+
     private func register() {
         guard !email.isEmpty, !password.isEmpty, !confirmPassword.isEmpty else {
             errorMessage = "Please fill in all fields."
             return
         }
+        guard isValidEmail(email) else {
+            errorMessage = "Please enter a valid email address."
+            return
+        }
         guard password == confirmPassword else {
             errorMessage = "Passwords do not match."
+            return
+        }
+        guard password.count >= 6 else {
+            errorMessage = "Password must be at least 6 characters."
             return
         }
         isLoading = true

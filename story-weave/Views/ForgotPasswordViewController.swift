@@ -1,11 +1,10 @@
 import UIKit
 
-class LoginViewController: UIViewController {
+class ForgotPasswordViewController: UIViewController {
 
     @IBOutlet weak var emailField: UITextField!
-    @IBOutlet weak var passwordField: UITextField!
-    @IBOutlet weak var errorLabel: UILabel!
-    @IBOutlet weak var loginButton: UIButton!
+    @IBOutlet weak var feedbackLabel: UILabel!
+    @IBOutlet weak var sendButton: UIButton!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
 
     override func viewDidLoad() {
@@ -13,15 +12,8 @@ class LoginViewController: UIViewController {
         setupUI()
     }
 
-    @IBAction func loginButtonTapped(_ sender: UIButton) { performLogin() }
-
-    @IBAction func signUpButtonTapped(_ sender: UIButton) {
-        navigationController?.pushViewController(RegisterViewController(), animated: true)
-    }
-
-    @objc private func forgotPasswordTapped() {
-        navigationController?.pushViewController(ForgotPasswordViewController(), animated: true)
-    }
+    @IBAction func sendButtonTapped(_ sender: UIButton) { performSendReset() }
+    @IBAction func backToLoginTapped(_ sender: UIButton) { navigationController?.popViewController(animated: true) }
 
     private func setupUI() {
         view.backgroundColor = .systemBackground
@@ -33,45 +25,42 @@ class LoginViewController: UIViewController {
         view.addSubview(scrollView)
         scrollView.addSubview(container)
 
-        let iconView = UIImageView(image: UIImage(systemName: "books.vertical.fill"))
+        let iconView = UIImageView(image: UIImage(systemName: "lock.rotation"))
         iconView.tintColor = .systemIndigo
         iconView.contentMode = .scaleAspectFit
         iconView.translatesAutoresizingMaskIntoConstraints = false
 
         let titleLabel = UILabel()
-        titleLabel.text = "StoryWeave"
+        titleLabel.text = "Reset Password"
         if let serif = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .largeTitle).withDesign(.serif) {
-            titleLabel.font = UIFont(descriptor: serif, size: 38)
+            titleLabel.font = UIFont(descriptor: serif, size: 34)
         }
         titleLabel.textAlignment = .center
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         let subtitleLabel = UILabel()
-        subtitleLabel.text = "Your interactive story library"
+        subtitleLabel.text = "Enter your email to receive a reset link"
         subtitleLabel.font = .preferredFont(forTextStyle: .subheadline)
         subtitleLabel.textColor = .secondaryLabel
         subtitleLabel.textAlignment = .center
+        subtitleLabel.numberOfLines = 0
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         let emailTF = makeTextField(placeholder: "Email", icon: "envelope", isSecure: false)
         emailTF.keyboardType = .emailAddress
         emailField = emailTF
 
-        let passwordTF = makeTextField(placeholder: "Password", icon: "lock", isSecure: true)
-        passwordField = passwordTF
+        let fbLabel = UILabel()
+        fbLabel.font = .preferredFont(forTextStyle: .footnote)
+        fbLabel.textAlignment = .center
+        fbLabel.numberOfLines = 0
+        fbLabel.isHidden = true
+        fbLabel.translatesAutoresizingMaskIntoConstraints = false
+        feedbackLabel = fbLabel
 
-        let errLabel = UILabel()
-        errLabel.font = .preferredFont(forTextStyle: .footnote)
-        errLabel.textColor = .systemRed
-        errLabel.textAlignment = .center
-        errLabel.numberOfLines = 0
-        errLabel.isHidden = true
-        errLabel.translatesAutoresizingMaskIntoConstraints = false
-        errorLabel = errLabel
-
-        let btn = makePrimaryButton(title: "Log In")
-        btn.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
-        loginButton = btn
+        let btn = makePrimaryButton(title: "Send Reset Link")
+        btn.addTarget(self, action: #selector(sendButtonTapped), for: .touchUpInside)
+        sendButton = btn
 
         let indicator = UIActivityIndicatorView(style: .medium)
         indicator.color = .white
@@ -79,28 +68,15 @@ class LoginViewController: UIViewController {
         indicator.translatesAutoresizingMaskIntoConstraints = false
         activityIndicator = indicator
 
-        let signUpBtn = UIButton(type: .system)
-        signUpBtn.translatesAutoresizingMaskIntoConstraints = false
-        let signUpAttr = NSMutableAttributedString(
-            string: "Don't have an account?  ",
-            attributes: [.foregroundColor: UIColor.secondaryLabel, .font: UIFont.preferredFont(forTextStyle: .subheadline)]
-        )
-        signUpAttr.append(NSAttributedString(
-            string: "Sign Up",
-            attributes: [.foregroundColor: UIColor.systemIndigo, .font: UIFont.systemFont(ofSize: 15, weight: .semibold)]
-        ))
-        signUpBtn.setAttributedTitle(signUpAttr, for: .normal)
-        signUpBtn.addTarget(self, action: #selector(signUpButtonTapped), for: .touchUpInside)
-
-        let forgotBtn = UIButton(type: .system)
-        forgotBtn.translatesAutoresizingMaskIntoConstraints = false
-        forgotBtn.setTitle("Forgot Password?", for: .normal)
-        forgotBtn.setTitleColor(.systemIndigo, for: .normal)
-        forgotBtn.titleLabel?.font = .preferredFont(forTextStyle: .subheadline)
-        forgotBtn.addTarget(self, action: #selector(forgotPasswordTapped), for: .touchUpInside)
+        let backBtn = UIButton(type: .system)
+        backBtn.translatesAutoresizingMaskIntoConstraints = false
+        backBtn.setTitle("Back to Login", for: .normal)
+        backBtn.setTitleColor(.systemIndigo, for: .normal)
+        backBtn.titleLabel?.font = .preferredFont(forTextStyle: .subheadline)
+        backBtn.addTarget(self, action: #selector(backToLoginTapped), for: .touchUpInside)
 
         [iconView, titleLabel, subtitleLabel,
-         emailTF, passwordTF, errLabel, btn, indicator, signUpBtn, forgotBtn
+         emailTF, btn, indicator, fbLabel, backBtn
         ].forEach { container.addSubview($0) }
 
         NSLayoutConstraint.activate([
@@ -133,16 +109,7 @@ class LoginViewController: UIViewController {
             emailTF.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -24),
             emailTF.heightAnchor.constraint(equalToConstant: 54),
 
-            passwordTF.topAnchor.constraint(equalTo: emailTF.bottomAnchor, constant: 16),
-            passwordTF.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 24),
-            passwordTF.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -24),
-            passwordTF.heightAnchor.constraint(equalToConstant: 54),
-
-            errLabel.topAnchor.constraint(equalTo: passwordTF.bottomAnchor, constant: 12),
-            errLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 24),
-            errLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -24),
-
-            btn.topAnchor.constraint(equalTo: errLabel.bottomAnchor, constant: 12),
+            btn.topAnchor.constraint(equalTo: emailTF.bottomAnchor, constant: 24),
             btn.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 24),
             btn.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -24),
             btn.heightAnchor.constraint(equalToConstant: 54),
@@ -150,12 +117,13 @@ class LoginViewController: UIViewController {
             indicator.centerXAnchor.constraint(equalTo: btn.centerXAnchor),
             indicator.centerYAnchor.constraint(equalTo: btn.centerYAnchor),
 
-            signUpBtn.topAnchor.constraint(equalTo: btn.bottomAnchor, constant: 20),
-            signUpBtn.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            fbLabel.topAnchor.constraint(equalTo: btn.bottomAnchor, constant: 12),
+            fbLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 24),
+            fbLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -24),
 
-            forgotBtn.topAnchor.constraint(equalTo: signUpBtn.bottomAnchor, constant: 12),
-            forgotBtn.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            forgotBtn.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -40),
+            backBtn.topAnchor.constraint(equalTo: fbLabel.bottomAnchor, constant: 20),
+            backBtn.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            backBtn.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -40),
         ])
     }
 
@@ -200,44 +168,44 @@ class LoginViewController: UIViewController {
         return predicate.evaluate(with: value)
     }
 
-    private func performLogin() {
-        guard let email = emailField.text, !email.isEmpty,
-              let password = passwordField.text, !password.isEmpty else {
-            showError("Please enter your email and password.")
+    private func performSendReset() {
+        guard let email = emailField.text, !email.isEmpty else {
+            showFeedback("Please enter your email address.", isSuccess: false)
             return
         }
         guard isValidEmail(email) else {
-            showError("Please enter a valid email address.")
+            showFeedback("Please enter a valid email address.", isSuccess: false)
             return
         }
         setLoading(true)
-        AuthService.shared.login(email: email, password: password) { [weak self] result in
+        AuthService.shared.sendPasswordReset(email: email) { [weak self] result in
             guard let self else { return }
             DispatchQueue.main.async {
                 self.setLoading(false)
                 switch result {
-                case .success(let user):
-                    AppSession.shared.set(userId: user.userId, email: user.email)
-                    self.navigationController?.setViewControllers([MainHostViewController()], animated: true)
+                case .success:
+                    self.showFeedback("Check your inbox for a reset link.", isSuccess: true)
+                    self.sendButton.isEnabled = false
                 case .failure(let error):
-                    self.showError(error.localizedDescription)
+                    self.showFeedback(error.localizedDescription, isSuccess: false)
                 }
             }
         }
     }
 
-    private func showError(_ message: String) {
-        errorLabel.text = message
-        errorLabel.isHidden = false
+    private func showFeedback(_ message: String, isSuccess: Bool) {
+        feedbackLabel.text = message
+        feedbackLabel.textColor = isSuccess ? .systemGreen : .systemRed
+        feedbackLabel.isHidden = false
     }
 
     private func setLoading(_ loading: Bool) {
-        loginButton.isEnabled = !loading
+        sendButton.isEnabled = !loading
         if loading {
-            loginButton.setTitle("", for: .normal)
+            sendButton.setTitle("", for: .normal)
             activityIndicator.startAnimating()
         } else {
-            loginButton.setTitle("Log In", for: .normal)
+            sendButton.setTitle("Send Reset Link", for: .normal)
             activityIndicator.stopAnimating()
         }
     }

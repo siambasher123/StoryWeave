@@ -14,7 +14,15 @@ class AuthService {
                 completion(.failure(error))
                 return
             }
-            guard let user = result?.user else { return }
+            guard let user = result?.user else {
+                let err = NSError(
+                    domain: "AuthService",
+                    code: -1,
+                    userInfo: [NSLocalizedDescriptionKey: "Registration succeeded but no user was returned. Please try again."]
+                )
+                completion(.failure(err))
+                return
+            }
             completion(.success((userId: user.uid, email: user.email ?? "")))
         }
     }
@@ -28,8 +36,29 @@ class AuthService {
                 completion(.failure(error))
                 return
             }
-            guard let user = result?.user else { return }
+            guard let user = result?.user else {
+                let err = NSError(
+                    domain: "AuthService",
+                    code: -1,
+                    userInfo: [NSLocalizedDescriptionKey: "Sign-in succeeded but no user was returned. Please try again."]
+                )
+                completion(.failure(err))
+                return
+            }
             completion(.success((userId: user.uid, email: user.email ?? "")))
+        }
+    }
+
+    func sendPasswordReset(
+        email: String,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        Auth.auth().sendPasswordReset(withEmail: email) { error in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(()))
+            }
         }
     }
 
