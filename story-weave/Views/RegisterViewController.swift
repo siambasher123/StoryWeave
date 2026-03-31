@@ -2,8 +2,6 @@ import UIKit
 
 class RegisterViewController: UIViewController {
 
-    // MARK: - Outlets
-
     @IBOutlet weak var emailField: UITextField!
     @IBOutlet weak var passwordField: UITextField!
     @IBOutlet weak var confirmPasswordField: UITextField!
@@ -11,28 +9,13 @@ class RegisterViewController: UIViewController {
     @IBOutlet weak var registerButton: UIButton!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
 
-    // MARK: - Lifecycle
+    override func viewDidLoad() { super.viewDidLoad(); setupUI() }
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        setupUI()
-    }
-
-    // MARK: - Actions
-
-    @IBAction func registerButtonTapped(_ sender: UIButton) {
-        performRegister()
-    }
-
-    @IBAction func backToLoginTapped(_ sender: UIButton) {
-        navigationController?.popViewController(animated: true)
-    }
-
-    // MARK: - Private UI Setup
+    @IBAction func registerButtonTapped(_ sender: UIButton) { performRegister() }
+    @IBAction func backToLoginTapped(_ sender: UIButton) { navigationController?.popViewController(animated: true) }
 
     private func setupUI() {
         view.backgroundColor = .systemBackground
-
         let scrollView = UIScrollView()
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         let container = UIView()
@@ -40,7 +23,6 @@ class RegisterViewController: UIViewController {
         view.addSubview(scrollView)
         scrollView.addSubview(container)
 
-        // ── Hero ─────────────────────────────────────────────────────────
         let iconView = UIImageView(image: UIImage(systemName: "person.badge.plus"))
         iconView.tintColor = .systemIndigo
         iconView.contentMode = .scaleAspectFit
@@ -48,9 +30,7 @@ class RegisterViewController: UIViewController {
 
         let titleLabel = UILabel()
         titleLabel.text = "Create Account"
-        if let serif = UIFontDescriptor
-            .preferredFontDescriptor(withTextStyle: .largeTitle)
-            .withDesign(.serif) {
+        if let serif = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .largeTitle).withDesign(.serif) {
             titleLabel.font = UIFont(descriptor: serif, size: 34)
         }
         titleLabel.textAlignment = .center
@@ -63,19 +43,14 @@ class RegisterViewController: UIViewController {
         subtitleLabel.textAlignment = .center
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        // ── Fields ───────────────────────────────────────────────────────
         let emailTF = makeTextField(placeholder: "Email", icon: "envelope", isSecure: false)
         emailTF.keyboardType = .emailAddress
         emailField = emailTF
-
         let passwordTF = makeTextField(placeholder: "Password", icon: "lock", isSecure: true)
         passwordField = passwordTF
-
-        let confirmTF = makeTextField(
-            placeholder: "Confirm Password", icon: "lock.rotation", isSecure: true)
+        let confirmTF = makeTextField(placeholder: "Confirm Password", icon: "lock.rotation", isSecure: true)
         confirmPasswordField = confirmTF
 
-        // ── Error label ──────────────────────────────────────────────────
         let errLabel = UILabel()
         errLabel.font = .preferredFont(forTextStyle: .footnote)
         errLabel.textColor = .systemRed
@@ -85,40 +60,33 @@ class RegisterViewController: UIViewController {
         errLabel.translatesAutoresizingMaskIntoConstraints = false
         errorLabel = errLabel
 
-        // ── Primary button ───────────────────────────────────────────────
         let btn = makePrimaryButton(title: "Create Account")
         btn.addTarget(self, action: #selector(registerButtonTapped), for: .touchUpInside)
         registerButton = btn
 
-        // ── Activity indicator ───────────────────────────────────────────
         let indicator = UIActivityIndicatorView(style: .medium)
         indicator.color = .white
         indicator.hidesWhenStopped = true
         indicator.translatesAutoresizingMaskIntoConstraints = false
         activityIndicator = indicator
 
-        // ── Back to login button ─────────────────────────────────────────
         let backBtn = UIButton(type: .system)
         backBtn.translatesAutoresizingMaskIntoConstraints = false
         let attrStr = NSMutableAttributedString(
             string: "Already have an account?  ",
-            attributes: [.foregroundColor: UIColor.secondaryLabel,
-                         .font: UIFont.preferredFont(forTextStyle: .subheadline)]
+            attributes: [.foregroundColor: UIColor.secondaryLabel, .font: UIFont.preferredFont(forTextStyle: .subheadline)]
         )
         attrStr.append(NSAttributedString(
             string: "Log In",
-            attributes: [.foregroundColor: UIColor.systemIndigo,
-                         .font: UIFont.systemFont(ofSize: 15, weight: .semibold)]
+            attributes: [.foregroundColor: UIColor.systemIndigo, .font: UIFont.systemFont(ofSize: 15, weight: .semibold)]
         ))
         backBtn.setAttributedTitle(attrStr, for: .normal)
         backBtn.addTarget(self, action: #selector(backToLoginTapped), for: .touchUpInside)
 
-        // ── Add to hierarchy ─────────────────────────────────────────────
         [iconView, titleLabel, subtitleLabel,
          emailTF, passwordTF, confirmTF, errLabel, btn, indicator, backBtn
         ].forEach { container.addSubview($0) }
 
-        // ── Constraints ──────────────────────────────────────────────────
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -177,8 +145,6 @@ class RegisterViewController: UIViewController {
         ])
     }
 
-    // MARK: - Reusable UI helpers
-
     private func makeTextField(placeholder: String, icon: String, isSecure: Bool) -> UITextField {
         let tf = UITextField()
         tf.placeholder = placeholder
@@ -189,7 +155,6 @@ class RegisterViewController: UIViewController {
         tf.layer.cornerRadius = 14
         tf.layer.masksToBounds = true
         tf.translatesAutoresizingMaskIntoConstraints = false
-
         let iconContainer = UIView(frame: CGRect(x: 0, y: 0, width: 44, height: 54))
         let img = UIImageView(image: UIImage(systemName: icon))
         img.tintColor = .secondaryLabel
@@ -198,11 +163,9 @@ class RegisterViewController: UIViewController {
         iconContainer.addSubview(img)
         tf.leftView = iconContainer
         tf.leftViewMode = .always
-
         let rightPad = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 54))
         tf.rightView = rightPad
         tf.rightViewMode = .always
-
         return tf
     }
 
@@ -218,19 +181,28 @@ class RegisterViewController: UIViewController {
         return btn
     }
 
-    // MARK: - Register logic
+    private func isValidEmail(_ value: String) -> Bool {
+        let predicate = NSPredicate(format: "SELF MATCHES %@", "[A-Z0-9a-z._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}")
+        return predicate.evaluate(with: value)
+    }
 
     private func performRegister() {
-        guard
-            let email = emailField.text, !email.isEmpty,
-            let password = passwordField.text, !password.isEmpty,
-            let confirm = confirmPasswordField.text, !confirm.isEmpty
-        else {
+        guard let email = emailField.text, !email.isEmpty,
+              let password = passwordField.text, !password.isEmpty,
+              let confirm = confirmPasswordField.text, !confirm.isEmpty else {
             showError("Please fill in all fields.")
+            return
+        }
+        guard isValidEmail(email) else {
+            showError("Please enter a valid email address.")
             return
         }
         guard password == confirm else {
             showError("Passwords do not match.")
+            return
+        }
+        guard password.count >= 6 else {
+            showError("Password must be at least 6 characters.")
             return
         }
         setLoading(true)
@@ -238,14 +210,17 @@ class RegisterViewController: UIViewController {
             guard let self else { return }
             switch result {
             case .failure(let error):
-                self.setLoading(false)
-                self.showError(error.localizedDescription)
+                DispatchQueue.main.async {
+                    self.setLoading(false)
+                    self.showError(error.localizedDescription)
+                }
             case .success(let user):
                 FirestoreService.shared.createUser(userId: user.userId, email: user.email) { _ in
-                    self.setLoading(false)
-                    AppSession.shared.set(userId: user.userId, email: user.email)
-                    self.navigationController?.setViewControllers(
-                        [MainHostViewController()], animated: true)
+                    DispatchQueue.main.async {
+                        self.setLoading(false)
+                        AppSession.shared.set(userId: user.userId, email: user.email)
+                        self.navigationController?.setViewControllers([MainHostViewController()], animated: true)
+                    }
                 }
             }
         }
