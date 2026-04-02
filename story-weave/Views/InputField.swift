@@ -3,9 +3,9 @@ import SwiftUI
 struct InputField: View {
     let icon: String
     let placeholder: String
-    @Binding var text: String
     var isSecure: Bool
     var keyboardType: UIKeyboardType = .default
+    @Binding var text: String
 
     var body: some View {
         HStack(spacing: 14) {

@@ -170,11 +170,11 @@ class ForgotPasswordViewController: UIViewController {
 
     private func performSendReset() {
         guard let email = emailField.text, !email.isEmpty else {
-            showFeedback("Please enter your email address.", isSuccess: false)
+            showFeedback("Enter your email address.", isSuccess: false)
             return
         }
         guard isValidEmail(email) else {
-            showFeedback("Please enter a valid email address.", isSuccess: false)
+            showFeedback("Enter a valid email address.", isSuccess: false)
             return
         }
         setLoading(true)
@@ -193,12 +193,6 @@ class ForgotPasswordViewController: UIViewController {
         }
     }
 
-    private func showFeedback(_ message: String, isSuccess: Bool) {
-        feedbackLabel.text = message
-        feedbackLabel.textColor = isSuccess ? .systemGreen : .systemRed
-        feedbackLabel.isHidden = false
-    }
-
     private func setLoading(_ loading: Bool) {
         sendButton.isEnabled = !loading
         if loading {
@@ -208,5 +202,11 @@ class ForgotPasswordViewController: UIViewController {
             sendButton.setTitle("Send Reset Link", for: .normal)
             activityIndicator.stopAnimating()
         }
+    }
+    
+    private func showFeedback(_ message: String, isSuccess: Bool) {
+        feedbackLabel.text = message
+        feedbackLabel.textColor = isSuccess ? .systemGreen : .systemRed
+        feedbackLabel.isHidden = false
     }
 }

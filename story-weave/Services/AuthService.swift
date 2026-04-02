@@ -49,6 +49,10 @@ class AuthService {
         }
     }
 
+    func logout() {
+        try? Auth.auth().signOut()
+    }
+
     func sendPasswordReset(
         email: String,
         completion: @escaping (Result<Void, Error>) -> Void
@@ -60,10 +64,6 @@ class AuthService {
                 completion(.success(()))
             }
         }
-    }
-
-    func logout() {
-        try? Auth.auth().signOut()
     }
 
     var currentUser: (userId: String, email: String)? {

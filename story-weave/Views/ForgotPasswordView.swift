@@ -73,7 +73,7 @@ struct ForgotPasswordView: View {
 
     private func sendReset() {
         guard !email.isEmpty else {
-            message = "Please enter your email address."
+            message = "Enter your email address."
             isSuccess = false
             return
         }

@@ -80,11 +80,11 @@ struct RegisterView: View {
 
     private func register() {
         guard !email.isEmpty, !password.isEmpty, !confirmPassword.isEmpty else {
-            errorMessage = "Please fill in all fields."
+            errorMessage = "Enter your email and passwords."
             return
         }
         guard isValidEmail(email) else {
-            errorMessage = "Please enter a valid email address."
+            errorMessage = "Enter a valid email address."
             return
         }
         guard password == confirmPassword else {

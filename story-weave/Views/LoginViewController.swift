@@ -203,11 +203,11 @@ class LoginViewController: UIViewController {
     private func performLogin() {
         guard let email = emailField.text, !email.isEmpty,
               let password = passwordField.text, !password.isEmpty else {
-            showError("Please enter your email and password.")
+            showError("Enter your email and password.")
             return
         }
         guard isValidEmail(email) else {
-            showError("Please enter a valid email address.")
+            showError("Enter a valid email address.")
             return
         }
         setLoading(true)
@@ -226,11 +226,6 @@ class LoginViewController: UIViewController {
         }
     }
 
-    private func showError(_ message: String) {
-        errorLabel.text = message
-        errorLabel.isHidden = false
-    }
-
     private func setLoading(_ loading: Bool) {
         loginButton.isEnabled = !loading
         if loading {
@@ -240,5 +235,10 @@ class LoginViewController: UIViewController {
             loginButton.setTitle("Log In", for: .normal)
             activityIndicator.stopAnimating()
         }
+    }
+
+    private func showError(_ message: String) {
+        errorLabel.text = message
+        errorLabel.isHidden = false
     }
 }
