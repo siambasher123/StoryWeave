@@ -4,9 +4,9 @@ class RegisterViewController: UIViewController {
 
     @IBOutlet weak var emailField: UITextField!
     @IBOutlet weak var passwordField: UITextField!
+    @IBOutlet weak var registerButton: UIButton!
     @IBOutlet weak var confirmPasswordField: UITextField!
     @IBOutlet weak var errorLabel: UILabel!
-    @IBOutlet weak var registerButton: UIButton!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
 
     override func viewDidLoad() { super.viewDidLoad(); setupUI() }
@@ -226,11 +226,6 @@ class RegisterViewController: UIViewController {
         }
     }
 
-    private func showError(_ message: String) {
-        errorLabel.text = message
-        errorLabel.isHidden = false
-    }
-
     private func setLoading(_ loading: Bool) {
         registerButton.isEnabled = !loading
         if loading {
@@ -240,5 +235,10 @@ class RegisterViewController: UIViewController {
             registerButton.setTitle("Create Account", for: .normal)
             activityIndicator.stopAnimating()
         }
+    }
+
+    private func showError(_ message: String) {
+        errorLabel.text = message
+        errorLabel.isHidden = false
     }
 }

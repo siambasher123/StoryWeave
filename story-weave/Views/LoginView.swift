@@ -83,18 +83,13 @@ struct LoginView: View {
         }
     }
 
-    private func isValidEmail(_ value: String) -> Bool {
-        let predicate = NSPredicate(format: "SELF MATCHES %@", "[A-Z0-9a-z._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}")
-        return predicate.evaluate(with: value)
-    }
-
-    private func login() {
+     private func login() {
         guard !email.isEmpty, !password.isEmpty else {
-            errorMessage = "Please enter your email and password."
+            errorMessage = "Enter your email and password."
             return
         }
         guard isValidEmail(email) else {
-            errorMessage = "Please enter a valid email address."
+            errorMessage = "Enter a valid email address."
             return
         }
         isLoading = true
@@ -106,5 +101,10 @@ struct LoginView: View {
             case .failure(let error): errorMessage = error.localizedDescription
             }
         }
+    }
+
+    private func isValidEmail(_ value: String) -> Bool {
+        let predicate = NSPredicate(format: "SELF MATCHES %@", "[A-Z0-9a-z._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}")
+        return predicate.evaluate(with: value)
     }
 }
