@@ -29,9 +29,9 @@ struct RegisterView: View {
                 .padding(.bottom, 48)
 
                 VStack(spacing: 16) {
-                    InputField(icon: "envelope", placeholder: "Email", text: $email, isSecure: false, keyboardType: .emailAddress)
-                    InputField(icon: "lock", placeholder: "Password", text: $password, isSecure: true)
-                    InputField(icon: "lock.rotation", placeholder: "Confirm Password", text: $confirmPassword, isSecure: true)
+                    InputField(icon: "envelope", placeholder: "Email", isSecure: false, keyboardType: .emailAddress, text: $email)
+                    InputField(icon: "lock", placeholder: "Password", isSecure: true, text: $password)
+                    InputField(icon: "lock.rotation", placeholder: "Confirm Password", isSecure: true, text: $confirmPassword)
                 }
                 .padding(.horizontal, 24)
 

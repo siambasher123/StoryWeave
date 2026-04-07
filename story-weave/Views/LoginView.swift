@@ -30,8 +30,8 @@ struct LoginView: View {
                     .padding(.bottom, 48)
 
                     VStack(spacing: 16) {
-                        InputField(icon: "envelope", placeholder: "Email", text: $email, isSecure: false, keyboardType: .emailAddress)
-                        InputField(icon: "lock", placeholder: "Password", text: $password, isSecure: true, keyboardType: .default)
+                        InputField(icon: "envelope", placeholder: "Email", isSecure: false, keyboardType: .emailAddress, text: $email)
+                        InputField(icon: "lock", placeholder: "Password", isSecure: true, keyboardType: .default, text: $password)
                     }
                     .padding(.horizontal, 24)
 
