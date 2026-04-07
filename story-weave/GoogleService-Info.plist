@@ -1,31 +1,30 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
-    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyAitNG6ITtpxML2BAv2Z37yjkW3pxK4SaY</string>
+	<string>AIzaSyDFS8RfZjNIWzKHGUIWkbeG_YxyWHquoz8</string>
 	<key>GCM_SENDER_ID</key>
-	<string>408224088713</string>
+	<string>586047881672</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.project.story-weave</string>
 	<key>PROJECT_ID</key>
-	<string>story-weave-lite</string>
+	<string>story-weave-101</string>
 	<key>STORAGE_BUCKET</key>
-	<string>story-weave-lite.firebasestorage.app</string>
+	<string>story-weave-101.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
-	<false />
+	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
-	<false />
+	<false></false>
 	<key>IS_APPINVITE_ENABLED</key>
-	<true />
+	<true></true>
 	<key>IS_GCM_ENABLED</key>
-	<true />
+	<true></true>
 	<key>IS_SIGNIN_ENABLED</key>
-	<true />
+	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:408224088713:ios:5b7e9115550a3231acbc58</string>
+	<string>1:586047881672:ios:73932516eaeb7d3a6c00fd</string>
 </dict>
 </plist>
