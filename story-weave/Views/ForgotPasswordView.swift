@@ -30,9 +30,9 @@ struct ForgotPasswordView: View {
                 InputField(
                     icon: "envelope",
                     placeholder: "Email",
-                    text: $email,
-                    isSecure: false,
-                    keyboardType: .emailAddress
+					isSecure: false,
+					keyboardType: .emailAddress,
+                    text: $email
                 )
                 .padding(.horizontal, 24)
 
