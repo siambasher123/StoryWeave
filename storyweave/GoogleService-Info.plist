@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyBOZCSR0h2U0aP7Rc5W5Yd_rWtGIxtttjY</string>
+	<string>AIzaSyBkP8z0xil3bvDAqwUreqBgrcx7ZpceGBw</string>
 	<key>GCM_SENDER_ID</key>
-	<string>631530979512</string>
+	<string>811569920626</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.project.storyweave</string>
 	<key>PROJECT_ID</key>
-	<string>storyweave-a84e6</string>
+	<string>storyweave-final</string>
 	<key>STORAGE_BUCKET</key>
-	<string>storyweave-a84e6.firebasestorage.app</string>
+	<string>storyweave-final.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:631530979512:ios:dab1834b1fc5376c15744d</string>
+	<string>1:811569920626:ios:13c02fed3eef3410d3e0eb</string>
 </dict>
 </plist>

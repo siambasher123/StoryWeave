@@ -17,6 +17,17 @@ final class CreateSkillViewModel: ObservableObject {
     private let firestore = FirestoreService.shared
     private let auth = AuthService.shared
 
+    // Pre-fill for editing existing skill
+    init(editing skill: Skill? = nil) {
+        guard let s = skill else { return }
+        name = s.name
+        description = s.description
+        statAffected = s.statAffected
+        targetType = s.targetType
+        modifier = s.modifier
+        cooldownTurns = s.cooldownTurns
+    }
+
     func create() async {
         guard !name.trimmingCharacters(in: .whitespaces).isEmpty else {
             errorMessage = "Name is required."
@@ -40,6 +51,31 @@ final class CreateSkillViewModel: ObservableObject {
         )
         do {
             try firestore.createSkill(skill)
+            didCreate = true
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func update(skill: Skill) async {
+        guard !name.trimmingCharacters(in: .whitespaces).isEmpty else {
+            errorMessage = "Name is required."
+            return
+        }
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+
+        var updated = skill
+        updated.name = name
+        updated.description = description
+        updated.statAffected = statAffected
+        updated.modifier = modifier
+        updated.cooldownTurns = cooldownTurns
+        updated.targetType = targetType
+
+        do {
+            try firestore.updateSkill(updated)
             didCreate = true
         } catch {
             errorMessage = error.localizedDescription
