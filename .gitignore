@@ -1,47 +1,6 @@
-# Xcode
-*.xcodeproj/xcuserdata/
-*.xcworkspace/xcuserdata/
-*.xcworkspace/xcshareddata/swiftpm/
-DerivedData/
-build/
-*.pbxuser
-*.mode1v3
-*.mode2v3
-*.perspectivev3
-*.xcuserstate
-*.xccheckout
-*.moved-aside
-*.hmap
-*.ipa
-*.dSYM.zip
-*.dSYM
-
-# Swift Package Manager
-.build/
-.swiftpm/
-
-# CocoaPods
-Pods/
-Podfile.lock
-
-# Firebase
-// story-weave/GoogleService-Info.plist
-
-# Secrets
-story-weave/Secrets.swift
-*.env
-
-# macOS
 **/.DS_Store
-.AppleDouble
-.LSOverride
-Thumbs.db
-
-# Xcode Previews
-PreviewAssets.xcassets/
-
-# Fastlane
-fastlane/report.xml
-fastlane/Preview.html
-fastlane/screenshots/
-fastlane/test_output/
+.claude/
+prds/
+CLAUDE.md
+TRACKER.md
+Plan.md
