@@ -35,8 +35,13 @@ struct SkillBrowserView: View {
     }
 }
 
+// MARK: - Skill Card (used in Library + browser)
+
 struct SkillCardView: View {
     let skill: Skill
+    var isOwn: Bool = false
+    var onEdit: (() -> Void)?
+    var onDelete: (() -> Void)?
 
     var body: some View {
         SWCard {
@@ -53,6 +58,23 @@ struct SkillCardView: View {
                         .padding(.vertical, 4)
                         .background(Color.swAccentHighlight)
                         .clipShape(Capsule())
+
+                    if isOwn {
+                        if let onEdit {
+                            Button(action: onEdit) {
+                                Image(systemName: "pencil.circle")
+                                    .foregroundStyle(Color.swAccentPrimary)
+                            }
+                            .accessibilityLabel("Edit skill")
+                        }
+                        if let onDelete {
+                            Button(action: onDelete) {
+                                Image(systemName: "trash.circle")
+                                    .foregroundStyle(Color.swDanger)
+                            }
+                            .accessibilityLabel("Delete skill")
+                        }
+                    }
                 }
 
                 Text(skill.description)

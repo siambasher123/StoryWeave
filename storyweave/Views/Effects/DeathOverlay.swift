@@ -11,7 +11,7 @@ struct DeathOverlay: View {
     var body: some View {
         if isShowing {
             ZStack {
-                Color.black.opacity(0.7).ignoresSafeArea()
+                Color.swBackground.opacity(0.88).ignoresSafeArea()
                 VStack(spacing: swSpacing * 2) {
                     Text("☠")
                         .font(.system(size: 60))

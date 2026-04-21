@@ -53,10 +53,17 @@ struct ProfileView: View {
     private var heroBanner: some View {
         ZStack(alignment: .bottom) {
             LinearGradient(
-                colors: [Color.swSurfaceRaised, Color.swBackground],
+                colors: [Color(hex: "#3C3668"), Color(hex: "#231F48"), Color.swBackground],
                 startPoint: .top, endPoint: .bottom
             )
-            .frame(height: 220)
+            .frame(height: 240)
+
+            // Diffuse glow at banner bottom edge
+            Capsule()
+                .fill(Color.swAccentPrimary.opacity(0.08))
+                .blur(radius: 20)
+                .frame(width: 320, height: 80)
+                .offset(y: 30)
 
             VStack(spacing: swSpacing) {
                 avatarCircle
@@ -104,12 +111,25 @@ struct ProfileView: View {
 
     private var avatarCircle: some View {
         ZStack {
+            // Conditional gold achievement ring (outermost)
+            if !inventoryVM.unlockedAchievements.isEmpty {
+                Circle()
+                    .stroke(LinearGradient.swGradientGold, lineWidth: 1.5)
+                    .frame(width: 106, height: 106)
+            }
+
+            // Gradient primary ring
             Circle()
-                .fill(Color.swAccentPrimary.opacity(0.15))
-                .frame(width: 96, height: 96)
+                .stroke(LinearGradient.swGradientPrimary, lineWidth: 2.5)
+                .frame(width: 98, height: 98)
+                .shadow(color: Color.swAccentPrimary.opacity(0.35), radius: 14, x: 0, y: 4)
+
+            // Radial fill
             Circle()
-                .stroke(Color.swAccentPrimary, lineWidth: 2)
-                .frame(width: 96, height: 96)
+                .fill(RadialGradient(
+                    colors: [Color.swAccentPrimary.opacity(0.30), Color.swAccentPrimary.opacity(0.05)],
+                    center: .center, startRadius: 0, endRadius: 48))
+                .frame(width: 92, height: 92)
 
             if let url = viewModel.profile?.avatarURL.flatMap(URL.init) {
                 AsyncImage(url: url) { image in
@@ -124,7 +144,7 @@ struct ProfileView: View {
             }
 
             if viewModel.isLoading {
-                Circle().fill(Color.black.opacity(0.5)).frame(width: 96, height: 96)
+                Circle().fill(Color.swBackground.opacity(0.7)).frame(width: 92, height: 92)
                 ProgressView().tint(Color.swAccentPrimary)
             }
         }
@@ -196,7 +216,7 @@ struct ProfileView: View {
             .frame(height: 8)
         }
         .padding(swSpacing * 2)
-        .background(Color.swSurface, in: RoundedRectangle(cornerRadius: 14))
+        .background(LinearGradient.swGradientSurface, in: RoundedRectangle(cornerRadius: 14))
     }
 
     // MARK: — Extra analytics
@@ -364,21 +384,37 @@ struct StatCard: View {
     let accent: Color
 
     var body: some View {
-        VStack(spacing: swSpacing) {
-            Text(icon).font(.title2)
-            Text(value)
-                .font(.system(size: 22, weight: .bold, design: .rounded))
-                .foregroundStyle(accent)
-                .minimumScaleFactor(0.7)
-                .lineLimit(1)
-            Text(label)
-                .font(.swCaption)
-                .foregroundStyle(Color.swTextSecondary)
-                .multilineTextAlignment(.center)
+        VStack(spacing: 0) {
+            // Top color band — unique identity per card
+            Rectangle()
+                .fill(accent.swGradientTopEdge())
+                .frame(height: 3)
+                .frame(maxWidth: .infinity)
+
+            VStack(spacing: swSpacing) {
+                Text(icon).font(.title2)
+                    .padding(.top, swSpacing)
+                Text(value)
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundStyle(LinearGradient(
+                        colors: [accent, accent.opacity(0.65)],
+                        startPoint: .top, endPoint: .bottom))
+                    .minimumScaleFactor(0.7)
+                    .lineLimit(1)
+                Text(label)
+                    .font(.swCaption)
+                    .foregroundStyle(Color.swTextSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.bottom, swSpacing)
+            }
         }
         .frame(maxWidth: .infinity)
-        .padding(swSpacing * 2)
-        .background(Color.swSurface, in: RoundedRectangle(cornerRadius: 14))
+        .background(LinearGradient.swGradientSurface, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(accent.opacity(0.20), lineWidth: 1)
+        )
+        .shadow(color: accent.opacity(0.12), radius: 6, x: 0, y: 3)
     }
 }
 

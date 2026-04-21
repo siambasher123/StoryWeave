@@ -6,6 +6,6 @@ struct Comment: Codable, Identifiable, Sendable {
     let parentCommentID: String?
     let authorUID: String
     let authorName: String
-    let body: String
+    var body: String
     let timestamp: Date
 }

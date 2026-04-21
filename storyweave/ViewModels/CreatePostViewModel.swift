@@ -16,6 +16,19 @@ final class CreatePostViewModel: ObservableObject {
     private let auth = AuthService.shared
     private let cloudinary = CloudinaryService.shared
 
+    private let editingPost: Post?
+
+    init(editing post: Post? = nil) {
+        editingPost = post
+        if let post {
+            body = post.body
+            attachedCharacterID = post.attachedCharacterID
+            attachedSkillID = post.attachedSkillID
+        }
+    }
+
+    var isEditing: Bool { editingPost != nil }
+
     func submit() async {
         guard !body.trimmingCharacters(in: .whitespaces).isEmpty else {
             errorMessage = "Post cannot be empty."
@@ -25,6 +38,14 @@ final class CreatePostViewModel: ObservableObject {
         errorMessage = nil
         defer { isLoading = false }
 
+        if let existing = editingPost {
+            await updateExisting(existing)
+        } else {
+            await createNew()
+        }
+    }
+
+    private func createNew() async {
         guard let uid = auth.currentUserID else { return }
         let profile = try? await firestore.fetchUserProfile(uid: uid)
 
@@ -47,6 +68,25 @@ final class CreatePostViewModel: ObservableObject {
         )
         do {
             try firestore.createPost(post)
+            didPost = true
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func updateExisting(_ existing: Post) async {
+        var updated = existing
+        updated.body = body
+        updated.attachedCharacterID = attachedCharacterID
+        updated.attachedSkillID = attachedSkillID
+
+        if let photo = selectedPhoto,
+           let data = try? await photo.loadTransferable(type: Data.self) {
+            updated.imageURL = try? await cloudinary.upload(imageData: data).absoluteString
+        }
+
+        do {
+            try firestore.updatePost(updated)
             didPost = true
         } catch {
             errorMessage = error.localizedDescription

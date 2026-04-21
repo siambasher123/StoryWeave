@@ -1,6 +1,7 @@
 **/.DS_Store
-.claude/
+.claude*/
 prds/
+.mcp.json
 CLAUDE.md
 TRACKER.md
 Plan.md

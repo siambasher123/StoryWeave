@@ -7,15 +7,20 @@ final class PostDetailViewModel: ObservableObject {
     @Published var comments: [Comment] = []
     @Published var commentText: String = ""
     @Published var replyingTo: Comment?
+    @Published var editingComment: Comment?
     @Published var isSubmitting = false
     @Published var myReactionEmoji: String?
     @Published var showReactionGivers = false
+    @Published var attachedCharacter: Character? = nil
+    @Published var attachedSkill: Skill? = nil
 
     let post: Post
     private let firestore = FirestoreService.shared
     private let auth = AuthService.shared
     private var reactionTask: Task<Void, Never>?
     private var commentTask: Task<Void, Never>?
+
+    var currentUserID: String? { auth.currentUserID }
 
     init(post: Post) {
         self.post = post
@@ -35,6 +40,16 @@ final class PostDetailViewModel: ObservableObject {
                 comments = c
             }
         }
+        loadAttachments()
+    }
+
+    private func loadAttachments() {
+        if let cid = post.attachedCharacterID {
+            Task { attachedCharacter = try? await firestore.fetchCharacter(id: cid) }
+        }
+        if let sid = post.attachedSkillID {
+            Task { attachedSkill = try? await firestore.fetchSkill(id: sid) }
+        }
     }
 
     func stopListening() {
@@ -43,21 +58,38 @@ final class PostDetailViewModel: ObservableObject {
     }
 
     func toggleReaction(emoji: String) {
-        guard let uid = auth.currentUserID,
-              let profile = auth.currentUserID else { return }
+        guard let uid = auth.currentUserID else { return }
         if myReactionEmoji == emoji {
             Task { try? await firestore.removeReaction(postID: post.id, uid: uid) }
             myReactionEmoji = nil
         } else {
-            let displayName = uid  // will fetch profile in production
-            try? firestore.react(postID: post.id, emoji: emoji, uid: uid, displayName: displayName)
+            Task {
+                let displayName: String
+                if let profile = try? await firestore.fetchUserProfile(uid: uid) {
+                    displayName = profile.displayName
+                } else {
+                    displayName = "Adventurer"
+                }
+                try? firestore.react(postID: post.id, emoji: emoji, uid: uid, displayName: displayName)
+            }
             myReactionEmoji = emoji
         }
     }
 
     func submitComment() async {
-        guard let uid = auth.currentUserID,
-              !commentText.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+        let body = commentText.trimmingCharacters(in: .whitespaces)
+        guard !body.isEmpty else { return }
+
+        if var editing = editingComment {
+            editing.body = body
+            comments = comments.map { $0.id == editing.id ? editing : $0 }
+            try? firestore.updateComment(editing)
+            commentText = ""
+            editingComment = nil
+            return
+        }
+
+        guard let uid = auth.currentUserID else { return }
         isSubmitting = true
         let displayName: String
         if let profile = try? await firestore.fetchUserProfile(uid: uid) {
@@ -71,13 +103,29 @@ final class PostDetailViewModel: ObservableObject {
             parentCommentID: replyingTo?.id,
             authorUID: uid,
             authorName: displayName,
-            body: commentText.trimmingCharacters(in: .whitespaces),
+            body: body,
             timestamp: Date()
         )
         try? firestore.addComment(comment)
         commentText = ""
         replyingTo = nil
         isSubmitting = false
+    }
+
+    func startEditComment(_ comment: Comment) {
+        replyingTo = nil
+        editingComment = comment
+        commentText = comment.body
+    }
+
+    func cancelEdit() {
+        editingComment = nil
+        commentText = ""
+    }
+
+    func deleteComment(_ comment: Comment) {
+        comments.removeAll { $0.id == comment.id }
+        Task { try? await firestore.deleteComment(commentID: comment.id, postID: post.id) }
     }
 }
 
@@ -87,6 +135,10 @@ struct PostDetailView: View {
     let post: Post
     @StateObject private var vm: PostDetailViewModel
     @Environment(\.dismiss) private var dismiss
+    @State private var showEditPost = false
+    @State private var showDeleteConfirm = false
+
+    private var isOwnPost: Bool { vm.currentUserID == post.authorUID }
 
     init(post: Post) {
         self.post = post
@@ -100,6 +152,7 @@ struct PostDetailView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: swSpacing * 3) {
                         postBody
+                        attachmentSection
                         reactionBar
                         Divider().background(Color.swAccentDeep)
                         commentSection
@@ -119,23 +172,48 @@ struct PostDetailView: View {
                     Button("Close") { dismiss() }
                         .foregroundStyle(Color.swAccentPrimary)
                 }
+                if isOwnPost {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Menu {
+                            Button { showEditPost = true } label: {
+                                Label("Edit Post", systemImage: "pencil")
+                            }
+                            Button(role: .destructive) { showDeleteConfirm = true } label: {
+                                Label("Delete Post", systemImage: "trash")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .foregroundStyle(Color.swAccentPrimary)
+                        }
+                        .accessibilityLabel("Post options")
+                    }
+                }
             }
-            .task {
-                vm.startListening()
-            }
+            .task { vm.startListening() }
             .onDisappear { vm.stopListening() }
             .sheet(isPresented: $vm.showReactionGivers) {
                 reactionGiversSheet
             }
+            .sheet(isPresented: $showEditPost) {
+                CreatePostView(editing: post)
+            }
+            .confirmationDialog("Delete this post?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
+                Button("Delete", role: .destructive) {
+                    Task {
+                        try? await FirestoreService.shared.deletePost(postID: post.id)
+                        dismiss()
+                    }
+                }
+            }
         }
     }
 
-    // MARK: — Post body (compact)
+    // MARK: — Post body
 
     private var postBody: some View {
         VStack(alignment: .leading, spacing: swSpacing) {
             HStack {
-                avatarCircle(name: post.authorName, size: 40)
+                SWAvatarView(name: post.authorName, size: 40, color: .swAccentPrimary)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(post.authorName)
                         .font(.swHeadline)
@@ -152,6 +230,88 @@ struct PostDetailView: View {
         }
     }
 
+    // MARK: — Attachments
+
+    @ViewBuilder
+    private var attachmentSection: some View {
+        if let character = vm.attachedCharacter {
+            characterCard(character)
+        }
+        if let skill = vm.attachedSkill {
+            skillCard(skill)
+        }
+    }
+
+    private func characterCard(_ character: Character) -> some View {
+        VStack(alignment: .leading, spacing: swSpacing) {
+            Label("Attached Character", systemImage: "person.fill")
+                .font(.swCaption)
+                .foregroundStyle(Color.swTextSecondary)
+
+            HStack(spacing: swSpacing * 2) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(character.name)
+                        .font(.swHeadline)
+                        .foregroundStyle(Color.swTextPrimary)
+                    Text("\(character.archetype.rawValue.capitalized) · Level \(character.level)")
+                        .font(.swCaption)
+                        .foregroundStyle(Color.swAccentLight)
+                }
+                Spacer()
+                VStack(alignment: .trailing, spacing: 4) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "heart.fill").foregroundStyle(Color.swDanger).font(.caption2)
+                        Text("\(character.hp)/\(character.maxHP)").font(.swCaption).foregroundStyle(Color.swTextSecondary)
+                    }
+                    HStack(spacing: 4) {
+                        Image(systemName: "bolt.fill").foregroundStyle(Color.swWarning).font(.caption2)
+                        Text("ATK \(character.atk)").font(.swCaption).foregroundStyle(Color.swTextSecondary)
+                    }
+                }
+            }
+
+            if !character.loreDescription.isEmpty {
+                Text(character.loreDescription)
+                    .font(.swCaption)
+                    .foregroundStyle(Color.swTextSecondary)
+                    .lineLimit(2)
+            }
+        }
+        .padding(swSpacing * 1.5)
+        .background(Color.swSurfaceRaised, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.swAccentPrimary.opacity(0.3), lineWidth: 1))
+    }
+
+    private func skillCard(_ skill: Skill) -> some View {
+        VStack(alignment: .leading, spacing: swSpacing) {
+            Label("Attached Skill", systemImage: "sparkles")
+                .font(.swCaption)
+                .foregroundStyle(Color.swTextSecondary)
+
+            HStack(spacing: swSpacing * 2) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(skill.name)
+                        .font(.swHeadline)
+                        .foregroundStyle(Color.swTextPrimary)
+                    Text("\(skill.statAffected.rawValue.uppercased()) \(skill.modifier >= 0 ? "+" : "")\(skill.modifier) · \(skill.targetType.rawValue.capitalized) · \(skill.cooldownTurns)T cooldown")
+                        .font(.swCaption)
+                        .foregroundStyle(Color.swAccentLight)
+                }
+                Spacer()
+            }
+
+            if !skill.description.isEmpty {
+                Text(skill.description)
+                    .font(.swCaption)
+                    .foregroundStyle(Color.swTextSecondary)
+                    .lineLimit(3)
+            }
+        }
+        .padding(swSpacing * 1.5)
+        .background(Color.swSurfaceRaised, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.swAccentHighlight.opacity(0.3), lineWidth: 1))
+    }
+
     // MARK: — Reaction bar
 
     private var reactionBar: some View {
@@ -162,9 +322,7 @@ struct PostDetailView: View {
                 }
                 Spacer()
                 if !vm.reactions.isEmpty {
-                    Button {
-                        vm.showReactionGivers = true
-                    } label: {
+                    Button { vm.showReactionGivers = true } label: {
                         Text("\(vm.reactions.count) reaction\(vm.reactions.count == 1 ? "" : "s")")
                             .font(.swCaption)
                             .foregroundStyle(Color.swAccentLight)
@@ -173,7 +331,6 @@ struct PostDetailView: View {
                 }
             }
 
-            // Emoji count summary
             if !vm.reactions.isEmpty {
                 reactionSummary
             }
@@ -234,13 +391,14 @@ struct PostDetailView: View {
                 }
             }
         }
-        .padding(.bottom, 120)  // space for composer
+        .padding(.bottom, 120)
     }
 
     private func commentRow(_ comment: Comment, isReply: Bool) -> some View {
-        HStack(alignment: .top, spacing: swSpacing) {
+        let isOwn = comment.authorUID == vm.currentUserID
+        return HStack(alignment: .top, spacing: swSpacing) {
             if isReply { Spacer().frame(width: 24) }
-            avatarCircle(name: comment.authorName, size: isReply ? 28 : 32)
+            SWAvatarView(name: comment.authorName, size: isReply ? 28 : 32, color: .swAccentMuted)
             VStack(alignment: .leading, spacing: 2) {
                 HStack {
                     Text(comment.authorName)
@@ -249,18 +407,35 @@ struct PostDetailView: View {
                     Text(comment.timestamp.formatted(date: .omitted, time: .shortened))
                         .font(.swCaption)
                         .foregroundStyle(Color.swTextSecondary)
+                    Spacer()
+                    if isOwn {
+                        Button {
+                            vm.startEditComment(comment)
+                        } label: {
+                            Image(systemName: "pencil")
+                                .font(.caption)
+                                .foregroundStyle(Color.swAccentLight.opacity(0.8))
+                        }
+                        .accessibilityLabel("Edit comment")
+                        Button {
+                            vm.deleteComment(comment)
+                        } label: {
+                            Image(systemName: "trash")
+                                .font(.caption)
+                                .foregroundStyle(Color.swDanger.opacity(0.7))
+                        }
+                        .accessibilityLabel("Delete comment")
+                    }
                 }
                 Text(comment.body)
                     .font(.swBody)
                     .foregroundStyle(Color.swTextPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 if !isReply {
-                    Button("Reply") {
-                        vm.replyingTo = comment
-                    }
-                    .font(.swCaption)
-                    .foregroundStyle(Color.swAccentPrimary)
-                    .accessibilityLabel("Reply to \(comment.authorName)")
+                    Button("Reply") { vm.replyingTo = comment }
+                        .font(.swCaption)
+                        .foregroundStyle(Color.swAccentPrimary)
+                        .accessibilityLabel("Reply to \(comment.authorName)")
                 }
             }
             Spacer()
@@ -272,7 +447,21 @@ struct PostDetailView: View {
 
     private var commentComposer: some View {
         VStack(spacing: 0) {
-            if let replyTarget = vm.replyingTo {
+            if let editTarget = vm.editingComment {
+                HStack {
+                    Image(systemName: "pencil").foregroundStyle(Color.swAccentLight).font(.caption)
+                    Text("Editing comment by \(editTarget.authorName)")
+                        .font(.swCaption)
+                        .foregroundStyle(Color.swAccentLight)
+                    Spacer()
+                    Button("Cancel") { vm.cancelEdit() }
+                        .font(.swCaption)
+                        .foregroundStyle(Color.swTextSecondary)
+                }
+                .padding(.horizontal, swSpacing * 2)
+                .padding(.vertical, swSpacing)
+                .background(Color.swSurface)
+            } else if let replyTarget = vm.replyingTo {
                 HStack {
                     Text("Replying to \(replyTarget.authorName)")
                         .font(.swCaption)
@@ -346,19 +535,6 @@ struct PostDetailView: View {
                         .foregroundStyle(Color.swAccentPrimary)
                 }
             }
-        }
-    }
-
-    // MARK: — Helper
-
-    private func avatarCircle(name: String, size: CGFloat) -> some View {
-        ZStack {
-            Circle()
-                .fill(Color.swAccentDeep)
-                .frame(width: size, height: size)
-            Text(String(name.prefix(1)).uppercased())
-                .font(.system(size: size * 0.45, weight: .bold))
-                .foregroundStyle(Color.swAccentLight)
         }
     }
 }

@@ -20,6 +20,9 @@ final class CharacterBrowserViewModel: ObservableObject {
     
     /// Shared Firestore service for character data retrieval
     private let firestore = FirestoreService.shared
+    private let auth = AuthService.shared
+
+    var currentUserID: String? { auth.currentUserID }
 
     // MARK: - Methods
     
@@ -52,5 +55,17 @@ final class CharacterBrowserViewModel: ObservableObject {
         // Combine lists: system defaults first, then user-created for better UX
         characters = systemChars + userCreated
         isLoading = false
+    }
+
+    func delete(_ character: Character) async {
+        characters.removeAll { $0.id == character.id }
+        try? await firestore.deleteCharacter(characterID: character.id)
+    }
+
+    func update(_ character: Character) {
+        try? firestore.updateCharacter(character)
+        if let idx = characters.firstIndex(where: { $0.id == character.id }) {
+            characters[idx] = character
+        }
     }
 }

@@ -3,8 +3,7 @@ import SwiftUI
 struct GameView: View {
     @StateObject private var viewModel = GameViewModel()
     @StateObject private var multiplayerVM = MultiplayerViewModel()
-    @State private var landingSegment = 0      // 0=Campaign, 1=Community
-    @State private var showCommunityStories = false
+    @State private var landingSegment = 0
     @State private var showMultiplayer = false
 
     var body: some View {
@@ -33,9 +32,6 @@ struct GameView: View {
             }
         }
         .task { await viewModel.loadGame() }
-        .sheet(isPresented: $showCommunityStories) {
-            CommunityStoriesView(gameVM: viewModel)
-        }
         .sheet(isPresented: $showMultiplayer) {
             MultiplayerLobbyView(vm: multiplayerVM)
         }
@@ -47,37 +43,41 @@ struct GameView: View {
                 Picker("", selection: $landingSegment) {
                     Text("Campaign").tag(0)
                     Text("Community").tag(1)
+                    Text("Sessions").tag(2)
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal, swSpacing * 2)
                 .padding(.vertical, swSpacing)
                 .background(Color.swBackground)
 
-                PartySelectionView(viewModel: viewModel)
+                if landingSegment == 0 {
+                    PartySelectionView(viewModel: viewModel)
+                } else if landingSegment == 1 {
+                    CommunityStoriesView(gameVM: viewModel)
+                } else {
+                    MySessionsView()
+                }
             }
 
-            Button {
-                showMultiplayer = true
-            } label: {
-                HStack(spacing: swSpacing) {
-                    Image(systemName: "dice.fill")
-                    Text("Multiplayer")
-                        .font(.swCaption).fontWeight(.semibold)
+            if landingSegment == 0 {
+                Button {
+                    showMultiplayer = true
+                } label: {
+                    HStack(spacing: swSpacing) {
+                        Image(systemName: "dice.fill")
+                        Text("Multiplayer")
+                            .font(.swCaption).fontWeight(.semibold)
+                    }
+                    .foregroundStyle(Color.swTextPrimary)
+                    .padding(.horizontal, swSpacing * 2)
+                    .padding(.vertical, swSpacing)
+                    .background(Color.swAccentPrimary)
+                    .clipShape(Capsule())
+                    .shadow(color: Color.swAccentPrimary.opacity(0.4), radius: 8)
                 }
-                .foregroundStyle(.white)
-                .padding(.horizontal, swSpacing * 2)
-                .padding(.vertical, swSpacing)
-                .background(Color.swAccentPrimary)
-                .clipShape(Capsule())
-                .shadow(color: Color.swAccentPrimary.opacity(0.4), radius: 8)
-            }
-            .padding(.trailing, swSpacing * 2)
-            .padding(.bottom, swSpacing * 2)
-        }
-        .onChange(of: landingSegment) { _, new in
-            if new == 1 {
-                showCommunityStories = true
-                landingSegment = 0
+                .accessibilityLabel("Start multiplayer game")
+                .padding(.trailing, swSpacing * 2)
+                .padding(.bottom, swSpacing * 2)
             }
         }
     }
@@ -88,7 +88,7 @@ struct GameOverView: View {
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.88).ignoresSafeArea()
+            Color.swBackground.opacity(0.96).ignoresSafeArea()
 
             VStack(spacing: swSpacing * 3) {
                 Text("Game Over")

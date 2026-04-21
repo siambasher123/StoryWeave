@@ -5,41 +5,65 @@ struct CommunityStoriesView: View {
     @StateObject private var vm = CommunityStoriesViewModel()
     @ObservedObject var gameVM: GameViewModel
     @Environment(\.dismiss) private var dismiss
+    @State private var searchText = ""
 
     private var myUID: String { Auth.auth().currentUser?.uid ?? "" }
+
+    private var filtered: [UserStory] {
+        guard !searchText.isEmpty else { return vm.stories }
+        let q = searchText.lowercased()
+        return vm.stories.filter {
+            $0.title.lowercased().contains(q) ||
+            $0.authorName.lowercased().contains(q) ||
+            $0.synopsis.lowercased().contains(q)
+        }
+    }
 
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.swBackground.ignoresSafeArea()
+                LinearGradient.swGradientBackground.ignoresSafeArea()
 
                 if vm.isLoading {
                     ProgressView().tint(Color.swAccentPrimary)
                 } else if vm.stories.isEmpty {
-                    VStack(spacing: swSpacing * 2) {
-                        Image(systemName: "book.pages")
-                            .font(.system(size: 48)).foregroundStyle(Color.swAccentMuted)
-                        Text("No published stories yet.")
-                            .font(.swBody).foregroundStyle(Color.swTextSecondary)
-                    }
+                    SWEmptyStateView(
+                        icon: "book.pages",
+                        title: "No stories yet",
+                        subtitle: "Published community stories appear here"
+                    )
                 } else {
                     ScrollView {
                         LazyVStack(spacing: swSpacing * 2) {
-                            ForEach(vm.stories) { story in
-                                StoryCard(story: story, isOwner: story.authorUID == myUID) {
-                                    Task {
-                                        try? await FirestoreService.shared.incrementPlayCount(storyID: story.id)
-                                        gameVM.pendingUserStory = story
-                                        dismiss()
-                                    }
-                                } onDelete: {
-                                    Task {
-                                        try? await FirestoreService.shared.deleteUserStory(id: story.id)
+                            SWSearchBar(placeholder: "Search by title, author, or synopsis…", text: $searchText)
+                                .padding(.horizontal, swSpacing * 2)
+                                .padding(.top, swSpacing)
+
+                            if filtered.isEmpty {
+                                SWEmptyStateView(
+                                    icon: "doc.text.magnifyingglass",
+                                    title: "No matches",
+                                    subtitle: "Try a different search"
+                                )
+                                .frame(height: 280)
+                            } else {
+                                ForEach(filtered) { story in
+                                    StoryCard(story: story, isOwner: story.authorUID == myUID) {
+                                        Task {
+                                            try? await FirestoreService.shared.incrementPlayCount(storyID: story.id)
+                                            gameVM.pendingUserStory = story
+                                            dismiss()
+                                        }
+                                    } onDelete: {
+                                        Task {
+                                            try? await FirestoreService.shared.deleteUserStory(id: story.id)
+                                        }
                                     }
                                 }
                             }
                         }
-                        .padding(swSpacing * 2)
+                        .padding(.horizontal, swSpacing * 2)
+                        .padding(.bottom, swSpacing * 2)
                     }
                 }
             }
@@ -90,9 +114,7 @@ private struct StoryCard: View {
                     SWPillBadge(text: "\(story.scenes.count) scenes", color: .swAccentMuted)
                     Spacer()
                     if isOwner {
-                        Button {
-                            onDelete()
-                        } label: {
+                        Button(action: onDelete) {
                             Image(systemName: "trash")
                                 .foregroundStyle(Color.swDanger)
                         }

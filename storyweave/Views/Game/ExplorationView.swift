@@ -13,7 +13,7 @@ struct ExplorationView: View {
             mainContent
 
             if let item = viewModel.lastPickedUpItem {
-                Color.black.opacity(0.5).ignoresSafeArea()
+                Color.swBackground.opacity(0.75).ignoresSafeArea()
                     .transition(.opacity)
                 ItemRevealCardView(item: item) {
                     viewModel.lastPickedUpItem = nil

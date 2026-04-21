@@ -1,8 +1,15 @@
 import SwiftUI
 
 struct CreateSkillView: View {
-    @StateObject private var viewModel = CreateSkillViewModel()
+    @StateObject private var viewModel: CreateSkillViewModel
     @Environment(\.dismiss) private var dismiss
+
+    private let editingSkill: Skill?
+
+    init(editing skill: Skill? = nil) {
+        editingSkill = skill
+        _viewModel = StateObject(wrappedValue: CreateSkillViewModel(editing: skill))
+    }
 
     var body: some View {
         NavigationStack {
@@ -51,9 +58,16 @@ struct CreateSkillView: View {
                             Text(err).font(.swCaption).foregroundStyle(Color.swDanger)
                         }
 
-                        SWButton(title: viewModel.isLoading ? "Creating..." : "Create Skill", style: .primary) {
+                        SWButton(
+                            title: viewModel.isLoading ? "Saving..." : (editingSkill == nil ? "Create Skill" : "Save Changes"),
+                            style: .primary
+                        ) {
                             Task {
-                                await viewModel.create()
+                                if let existing = editingSkill {
+                                    await viewModel.update(skill: existing)
+                                } else {
+                                    await viewModel.create()
+                                }
                                 if viewModel.didCreate { dismiss() }
                             }
                         }
@@ -62,7 +76,7 @@ struct CreateSkillView: View {
                     .padding(swSpacing * 2)
                 }
             }
-            .navigationTitle("New Skill")
+            .navigationTitle(editingSkill == nil ? "New Skill" : "Edit Skill")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
