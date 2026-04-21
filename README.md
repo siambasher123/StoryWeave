@@ -650,6 +650,70 @@ Implemented all Firebase Auth flows: sign-in, account creation with display-name
 
 ---
 
+## 6. Project Setup and Run Instructions
+
+### 6.1 Clone the Repository
+
+```bash
+git clone https://github.com/siambasher123/StoryWeave.git
+cd StoryWeave
+```
+
+### 6.2 Open the Project
+
+- Open the project in Xcode using:
+
+```bash
+open storyweave.xcodeproj
+```
+
+- The project can also be opened in VS Code for code inspection:
+
+```bash
+code .
+```
+
+### 6.3 Firebase Configuration
+
+- The app expects a Firebase configuration file named:
+
+```text
+storyweave/GoogleService-Info.plist
+```
+
+- Firebase is initialized in `StoryWeaveApp.swift` using:
+
+```swift
+FirebaseApp.configure()
+```
+
+### 6.4 Secrets Configuration
+
+- The app reads external API configuration from:
+
+```text
+storyweave/Secrets.plist
+```
+
+- Required keys:
+
+```text
+GeminiAPIKey
+CloudinaryCloudName
+CloudinaryUploadPreset
+```
+
+- Real API keys should never be exposed in a public repository or report.
+- For demonstration, use placeholder values or keep secrets excluded from public submission.
+
+### 6.5 Run the App
+
+- Select an iOS simulator in Xcode.
+- Build and run the app.
+- Create an account or sign in using Firebase Authentication.
+- Test Home, Play, Chat, Library, and Profile tabs.
+
+---
 ## References
 
 - [Apple Developer — SwiftUI Documentation](https://developer.apple.com/documentation/swiftui)
