@@ -1,7 +1,29 @@
 import SwiftUI
+import UIKit
 
 struct MainTabView: View {
     @State private var selectedTab = 0
+
+    init() {
+        let a = UITabBarAppearance()
+        a.configureWithOpaqueBackground()
+        a.backgroundColor = UIColor(red: 0.094, green: 0.086, blue: 0.188, alpha: 1.0) // #181630
+
+        let normal = a.stackedLayoutAppearance.normal
+        let selected = a.stackedLayoutAppearance.selected
+
+        normal.iconColor = UIColor(Color.swTextSecondary)
+        normal.titleTextAttributes = [.foregroundColor: UIColor(Color.swTextSecondary)]
+
+        selected.iconColor = UIColor(Color.swAccentLight)
+        selected.titleTextAttributes = [
+            .foregroundColor: UIColor(Color.swAccentLight),
+            .font: UIFont.systemFont(ofSize: 10, weight: .semibold)
+        ]
+
+        UITabBar.appearance().standardAppearance = a
+        UITabBar.appearance().scrollEdgeAppearance = a
+    }
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -18,9 +40,9 @@ struct MainTabView: View {
             .tag(1)
 
             NavigationStack {
-                ChatView()
+                CreateTabView()
             }
-            .tabItem { Label("Chat", systemImage: "bubble.left.and.bubble.right.fill") }
+            .tabItem { Label("Create", systemImage: "plus.circle.fill") }
             .tag(2)
 
             NavigationStack {
@@ -35,6 +57,6 @@ struct MainTabView: View {
             .tabItem { Label("Profile", systemImage: "person.fill") }
             .tag(4)
         }
-        .tint(Color.swAccentPrimary)
+        .tint(Color.swAccentLight)
     }
 }

@@ -7,23 +7,21 @@ struct MySessionsView: View {
 
     var body: some View {
         ZStack {
-            Color.swBackground.ignoresSafeArea()
+            LinearGradient.swGradientBackground.ignoresSafeArea()
 
             if vm.mySessions.isEmpty {
-                VStack(spacing: swSpacing * 2) {
-                    Image(systemName: "dice")
-                        .font(.system(size: 48)).foregroundStyle(Color.swAccentMuted)
-                    Text("No active sessions")
-                        .font(.swHeadline).foregroundStyle(Color.swTextSecondary)
-                    Text("Start a new multiplayer D&D session and invite friends.")
-                        .font(.swBody).foregroundStyle(Color.swTextSecondary)
-                        .multilineTextAlignment(.center)
+                VStack(spacing: swSpacing * 3) {
+                    SWEmptyStateView(
+                        icon: "dice",
+                        title: "No active sessions",
+                        subtitle: "Start a new multiplayer D&D session and invite friends."
+                    )
                     SWButton(title: "Create Session", style: .primary) {
                         showLobby = true
                     }
-                    .frame(width: 180)
+                    .frame(width: 200)
+                    .padding(.horizontal, swSpacing * 4)
                 }
-                .padding(swSpacing * 4)
             } else {
                 ScrollView {
                     LazyVStack(spacing: swSpacing) {
@@ -82,9 +80,7 @@ private struct SessionRowView: View {
 
                 HStack {
                     Spacer()
-                    Button {
-                        onAbandon()
-                    } label: {
+                    Button(action: onAbandon) {
                         Text(isHost ? "Abandon" : "Leave")
                             .font(.swCaption)
                             .foregroundStyle(Color.swDanger)

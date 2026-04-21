@@ -378,6 +378,52 @@ final class FirestoreService {
             .updateData(["status": SessionStatus.abandoned.rawValue])
     }
 
+    // MARK: - CRUD extensions
+
+    func deletePost(postID: String) async throws {
+        try await db.collection("posts").document(postID).delete()
+    }
+
+    func updatePost(_ post: Post) throws {
+        try db.collection("posts").document(post.id).setData(from: post, merge: true)
+    }
+
+    func updateCharacter(_ character: Character) throws {
+        try db.collection("characters").document(character.id).setData(from: character, merge: true)
+    }
+
+    func deleteCharacter(characterID: String) async throws {
+        try await db.collection("characters").document(characterID).delete()
+    }
+
+    func updateSkill(_ skill: Skill) throws {
+        try db.collection("skills").document(skill.id).setData(from: skill, merge: true)
+    }
+
+    func deleteSkill(skillID: String) async throws {
+        try await db.collection("skills").document(skillID).delete()
+    }
+
+    func deleteComment(commentID: String, postID: String) async throws {
+        try await db.collection("posts").document(postID)
+            .collection("comments").document(commentID).delete()
+    }
+
+    func updateComment(_ comment: Comment) throws {
+        try db.collection("posts").document(comment.postID)
+            .collection("comments").document(comment.id).setData(from: comment, merge: true)
+    }
+
+    func deleteMessage(messageID: String, conversationID: String) async throws {
+        try await db.collection("conversations").document(conversationID)
+            .collection("messages").document(messageID).delete()
+    }
+
+    func updateMessage(_ message: ChatMessage) throws {
+        try db.collection("conversations").document(message.conversationID)
+            .collection("messages").document(message.id).setData(from: message, merge: true)
+    }
+
     // MARK: - Seeding defaults
 
     func ensureDefaultsSeeded() async {

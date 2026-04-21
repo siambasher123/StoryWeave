@@ -15,4 +15,5 @@ struct Character: Codable, Identifiable, Sendable {
     var loreDescription: String
     var level: Int
     var xp: Int
+    var portraitURL: String?
 }

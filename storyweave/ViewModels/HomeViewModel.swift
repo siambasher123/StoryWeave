@@ -12,6 +12,8 @@ final class HomeViewModel: ObservableObject {
     private let auth = AuthService.shared
     private var streamTask: Task<Void, Never>?
 
+    var currentUserID: String? { auth.currentUserID }
+
     func startListening() {
         streamTask = Task {
             for await posts in firestore.postsStream() {
@@ -52,6 +54,18 @@ final class HomeViewModel: ObservableObject {
             if let liked = try? await firestore.isPostLiked(postID: post.id, uid: uid), liked {
                 likedPostIDs.insert(post.id)
             }
+        }
+    }
+
+    func deletePost(_ post: Post) async {
+        posts.removeAll { $0.id == post.id }
+        try? await firestore.deletePost(postID: post.id)
+    }
+
+    func updatePost(_ post: Post) {
+        try? firestore.updatePost(post)
+        if let idx = posts.firstIndex(where: { $0.id == post.id }) {
+            posts[idx] = post
         }
     }
 }

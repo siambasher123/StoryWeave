@@ -22,6 +22,19 @@ final class CreateCharacterViewModel: ObservableObject {
     private let auth = AuthService.shared
     private let cloudinary = CloudinaryService.shared
 
+    // Pre-fill for editing existing character
+    init(editing character: Character? = nil) {
+        guard let c = character else { return }
+        name = c.name
+        archetype = c.archetype
+        loreDescription = c.loreDescription
+        hp = c.hp
+        atk = c.atk
+        def = c.def
+        dex = c.dex
+        intel = c.intel
+    }
+
     func create() async {
         guard !name.trimmingCharacters(in: .whitespaces).isEmpty else {
             errorMessage = "Name is required."
@@ -38,7 +51,6 @@ final class CreateCharacterViewModel: ObservableObject {
            let data = try? await photo.loadTransferable(type: Data.self) {
             portraitURL = try? await cloudinary.upload(imageData: data).absoluteString
         }
-        _ = portraitURL
 
         let character = Character(
             id: UUID().uuidString,
@@ -54,10 +66,46 @@ final class CreateCharacterViewModel: ObservableObject {
             createdByUID: uid,
             loreDescription: loreDescription,
             level: 1,
-            xp: 0
+            xp: 0,
+            portraitURL: portraitURL
         )
         do {
             try firestore.createCharacter(character)
+            didCreate = true
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func update(character: Character) async {
+        guard !name.trimmingCharacters(in: .whitespaces).isEmpty else {
+            errorMessage = "Name is required."
+            return
+        }
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+
+        var updatedPortraitURL = character.portraitURL
+        if let photo = selectedPhoto,
+           let data = try? await photo.loadTransferable(type: Data.self) {
+            updatedPortraitURL = try? await cloudinary.upload(imageData: data).absoluteString
+        }
+
+        var updated = character
+        updated.name = name
+        updated.archetype = archetype
+        updated.loreDescription = loreDescription
+        updated.hp = hp
+        updated.maxHP = hp
+        updated.atk = atk
+        updated.def = def
+        updated.dex = dex
+        updated.intel = intel
+        updated.portraitURL = updatedPortraitURL
+
+        do {
+            try firestore.updateCharacter(updated)
             didCreate = true
         } catch {
             errorMessage = error.localizedDescription

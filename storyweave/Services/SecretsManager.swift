@@ -18,4 +18,5 @@ struct SecretsManager {
     var geminiAPIKey: String { (dict["GeminiAPIKey"] as? String) ?? "" }
     var cloudinaryCloudName: String { (dict["CloudinaryCloudName"] as? String) ?? "" }
     var cloudinaryUploadPreset: String { (dict["CloudinaryUploadPreset"] as? String) ?? "" }
+    var newsAPIKey: String { (dict["NewsAPIKey"] as? String) ?? "" }
 }

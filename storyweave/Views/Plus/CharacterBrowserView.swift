@@ -35,15 +35,19 @@ struct CharacterBrowserView: View {
     }
 }
 
+// MARK: - Character Card (used in Library + browser)
+
 struct CharacterCardView: View {
     let character: Character
+    var isOwn: Bool = false
+    var onEdit: (() -> Void)?
+    var onDelete: (() -> Void)?
 
     var body: some View {
         SWCard {
             HStack(spacing: swSpacing * 2) {
-                Text(archetypeIcon)
-                    .font(.system(size: 36))
-                    .frame(width: 48, height: 48)
+                portraitView
+                    .frame(width: 52, height: 52)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(character.name)
@@ -60,11 +64,55 @@ struct CharacterCardView: View {
                 }
 
                 Spacer()
+
+                if isOwn {
+                    VStack(spacing: swSpacing) {
+                        if let onEdit {
+                            Button(action: onEdit) {
+                                Image(systemName: "pencil.circle")
+                                    .foregroundStyle(Color.swAccentPrimary)
+                            }
+                            .accessibilityLabel("Edit character")
+                        }
+                        if let onDelete {
+                            Button(action: onDelete) {
+                                Image(systemName: "trash.circle")
+                                    .foregroundStyle(Color.swDanger)
+                            }
+                            .accessibilityLabel("Delete character")
+                        }
+                    }
+                }
             }
         }
     }
 
-    private var archetypeIcon: String {
+    @ViewBuilder
+    private var portraitView: some View {
+        if let urlString = character.portraitURL, let url = URL(string: urlString) {
+            AsyncImage(url: url) { image in
+                image.resizable().scaledToFill()
+            } placeholder: {
+                archetypeIcon
+            }
+            .frame(width: 52, height: 52)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        } else {
+            archetypeIcon
+        }
+    }
+
+    private var archetypeIcon: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.swAccentDeep)
+                .frame(width: 52, height: 52)
+            Text(archetypeEmoji)
+                .font(.system(size: 28))
+        }
+    }
+
+    private var archetypeEmoji: String {
         switch character.archetype {
         case .warrior: return "⚔️"
         case .mage:    return "🔮"

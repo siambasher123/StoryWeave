@@ -2,10 +2,14 @@ import SwiftUI
 import PhotosUI
 
 struct CreatePostView: View {
-    @StateObject private var viewModel = CreatePostViewModel()
+    @StateObject private var viewModel: CreatePostViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var showCharacterPicker = false
     @State private var showSkillPicker = false
+
+    init(editing post: Post? = nil) {
+        _viewModel = StateObject(wrappedValue: CreatePostViewModel(editing: post))
+    }
 
     var body: some View {
         NavigationStack {

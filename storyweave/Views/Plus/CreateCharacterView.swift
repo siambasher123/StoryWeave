@@ -2,8 +2,15 @@ import SwiftUI
 import PhotosUI
 
 struct CreateCharacterView: View {
-    @StateObject private var viewModel = CreateCharacterViewModel()
+    @StateObject private var viewModel: CreateCharacterViewModel
     @Environment(\.dismiss) private var dismiss
+
+    private let editingCharacter: Character?
+
+    init(editing character: Character? = nil) {
+        editingCharacter = character
+        _viewModel = StateObject(wrappedValue: CreateCharacterViewModel(editing: character))
+    }
 
     var body: some View {
         NavigationStack {
@@ -61,9 +68,16 @@ struct CreateCharacterView: View {
                             Text(err).font(.swCaption).foregroundStyle(Color.swDanger)
                         }
 
-                        SWButton(title: viewModel.isLoading ? "Creating..." : "Create Character", style: .primary) {
+                        SWButton(
+                            title: viewModel.isLoading ? "Saving..." : (editingCharacter == nil ? "Create Character" : "Save Changes"),
+                            style: .primary
+                        ) {
                             Task {
-                                await viewModel.create()
+                                if let existing = editingCharacter {
+                                    await viewModel.update(character: existing)
+                                } else {
+                                    await viewModel.create()
+                                }
                                 if viewModel.didCreate { dismiss() }
                             }
                         }
@@ -72,7 +86,7 @@ struct CreateCharacterView: View {
                     .padding(swSpacing * 2)
                 }
             }
-            .navigationTitle("New Character")
+            .navigationTitle(editingCharacter == nil ? "New Character" : "Edit Character")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
