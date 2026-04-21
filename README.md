@@ -1,10 +1,12 @@
 # StoryWeave — A D&D RPG Adventure Platform
 
-**Khulna University of Engineering & Technology**
-Department of Computer Science and Engineering
-Course No: CSE 3218
-Course Title: Mobile Computing Laboratory
-Date: 21/04/2026
+> **StoryWeave** is an iOS fantasy RPG and social storytelling application built with SwiftUI, Firebase, Cloudinary, and Gemini narration support. This README is structured as the main documentation source for the project report.
+
+- **Khulna University of Engineering & Technology**
+- Department of Computer Science and Engineering
+- Course No: CSE 3218
+- Course Title: Mobile Computing Laboratory
+- Date: 22/04/2026
 
 ---
 
@@ -25,21 +27,24 @@ Date: 21/04/2026
 
 ---
 
-## Objectives
+## 1. Project Summary
 
-- To design and implement a fully featured, single-player party-based RPG iOS application inspired by Dungeons & Dragons.
-- To integrate Google Gemini Flash 2.0 for AI-driven streamed narrative generation that responds dynamically to player decisions and surviving party state.
-- To build a real-time social community layer — feed, direct messaging, emoji reactions, threaded comments, and a tech/gaming news tab — backed by Firebase Firestore.
-- To implement a community story builder that allows users to author, publish, and share their own multi-scene branching adventures.
-- To deliver all game visuals and animations (dice rolls, combat hit effects, level-up particle bursts, death overlay) entirely in SwiftUI with no external asset files.
+**StoryWeave** combines three major ideas inside one mobile application: an interactive D&D-inspired story game, a social community platform, and a creative story-building tool. Users can authenticate, create characters and skills, write custom stories, publish posts, react to community content, chat with connected users, play story campaigns, join multiplayer sessions, and track gameplay progress through custom analytics.
+
+The app is built using **SwiftUI** and follows the **MVVM architecture**. Firebase Authentication manages user sessions, Cloud Firestore stores app data and real-time updates, Cloudinary handles image uploads, and Gemini is used for AI-assisted narration during gameplay. The application is designed as a feature-rich mobile computing project that demonstrates authentication, CRUD operations, real-time database listeners, API communication, state management, and modular iOS development.
 
 ---
+## 3. At-a-Glance Project Highlights
 
-## Introduction
-
-StoryWeave is a dark-fantasy iOS application that merges a turn-based RPG game engine with a living social community platform. After signing in, the player assembles a party of up to five AI-controlled bot companions, picks an archetype hero, and embarks on a five-act campaign where every narrative beat is generated in real time by Google Gemini Flash 2.0 via Server-Sent Events. Four scene types drive the gameplay: open-world exploration with branching choices, character dialogue, turn-based combat with a full bot-AI decision engine, and D20 skill checks — each rendered with hand-crafted SwiftUI animations and haptic feedback.
-
-Beyond solo play, StoryWeave provides a full social layer. Users post adventure highlights with optional image, character, or skill card attachments; react with emoji; and write threaded comments. A direct-message system built on Firestore real-time listeners lets connected players chat privately. A multi-step story builder lets any user author and publish their own branching adventures, which appear in the Community tab for other players to run. The application is dark-mode only, styled with a Royal Purple design system (`#7C3AED` brand accent), and enforces Swift 6 strict concurrency (`@MainActor` global isolation) throughout.
+| Area | What StoryWeave Provides |
+|---|---|
+| **Account System** | Email/password signup, login, password reset, logout, and session-based routing. |
+| **Social Layer** | User posts, image posts, likes, emoji reactions, comments, replies, and real-time feed updates. |
+| **Creative Tools** | Character creator, skill creator, and custom story builder with scene linking. |
+| **Gameplay** | D&D-style campaign, party selection, exploration, dialogue, combat, skill checks, XP, inventory, and autosave. |
+| **AI Support** | Gemini-based narration with fallback text when API access is unavailable. |
+| **Chat and Multiplayer** | User discovery, connection requests, conversations, invitations, and multiplayer session synchronization. |
+| **Analytics** | Custom gameplay analytics stored in user profiles and displayed through profile statistics and achievements. |
 
 ---
 
@@ -642,24 +647,6 @@ Built the full direct-messaging system end-to-end: `Connection` and `Conversatio
 _Authentication, Profile + Library Tab & Story Creation_
 
 Implemented all Firebase Auth flows: sign-in, account creation with display-name provisioning, password-reset email, and session-aware routing in `StoryWeaveApp`. Built the entire Profile tab: `ProfileViewModel`, Cloudinary-backed avatar upload with live circular preview, game-analytics tile grid (Combats Won/Lost, Acts Done, Heroes Lost, Skill Checks, Playtime), combat win-rate and skill-check accuracy progress indicators, inventory list via `InventoryViewModel`, and the Sign Out button. The Library character and skill browsers (`CharacterBrowserViewModel`, `SkillBrowserViewModel`, `LibraryView`). Implemented the first two steps of the community story builder wizard — Story Info (title and synopsis) and the Scenes editor (scene type, narration text, branching choices, combat and skill-check configuration per scene).
-
----
-
-## Discussion
-
-A significant technical challenge was integrating Google Gemini's SSE streaming API within Swift 6's strict actor isolation. `GeminiService` returns an `AsyncThrowingStream<String, Error>` from a `nonisolated` method, and `GameViewModel` — pinned to `@MainActor` — must progressively append tokens to `@Published var narration` without data races. The solution was to open a detached `Task` inside the ViewModel that consumes the stream with `for try await`, writing each chunk to `@MainActor` state, and cancels via a stored `Task` reference on every scene transition.
-
-A second challenge was designing a story engine that handles both the hard-coded five-act campaign and arbitrary user-authored adventures through the same code path. Introducing a `StoryProvider` protocol implemented by `CampaignStoryProvider` and `UserStoryProvider` allowed `GameViewModel` to remain provider-agnostic. Swapping the provider at game-start is sufficient to run any story type with zero branching logic in the engine itself.
-
-A third challenge involved bridging Firestore's callback-based snapshot listeners into the Swift async/await world for real-time chat. Wrapping each `addSnapshotListener` call in an `AsyncStream { continuation in … }` inside `FirestoreService` exposed a typed async sequence that `ConversationViewModel` could consume with `for await` on the `@MainActor`, satisfying Swift 6 Sendable requirements while delivering sub-second message delivery.
-
-Finally, building all animations — dice rolls, combat screen shakes, death dissolves, level-up glows — entirely in SwiftUI without external assets required creative use of `TimelineView`, `Canvas`, `GeometryEffect`, and `rotation3DEffect`. Confining particle-system draw calls to `TimelineView` with a `.animation` schedule prevented layout passes on every frame tick and maintained a smooth 60 fps throughout combat sequences.
-
----
-
-## Conclusion
-
-StoryWeave delivers a complete, production-quality iOS experience combining a five-act AI-narrated RPG with a real-time social community. Swift 6 strict concurrency, MVVM architecture, and the `StoryProvider` protocol made the game engine fully decoupled from both the campaign content and the social layer, enabling all three of them to evolve independently. Firebase Firestore's offline persistence means game saves survive network interruptions, while Gemini Flash 2.0 streaming keeps narrative latency imperceptible. The project provided hands-on experience in streaming API integration, protocol-driven game-engine design, actor-safe real-time data pipelines, and building complex animations purely from SwiftUI primitives — demonstrating that modern iOS frameworks are capable of powering immersive, multi-user interactive experiences without a single external asset file.
 
 ---
 
