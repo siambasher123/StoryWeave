@@ -2,6 +2,12 @@ import Foundation
 
 // MARK: — Scene support types
 
+/// Represents a combat enemy with stats and visual presentation
+/// - id: Unique identifier for the enemy instance
+/// - name: Display name for the enemy
+/// - emoji: Visual representation in the UI
+/// - hp/maxHP: Current and maximum health points
+/// - atk/def/dex: Combat stats (attack, defense, dexterity)
 struct Enemy: Codable, Identifiable, Sendable {
     let id: String
     let name: String
@@ -13,11 +19,15 @@ struct Enemy: Codable, Identifiable, Sendable {
     let dex: Int
 }
 
+/// Configuration for combat encounters
+/// Specifies enemies and optional escape options
 struct CombatConfig: Sendable {
     let enemies: [Enemy]
     let fleeSceneID: String?
 }
 
+/// Configuration for skill check/ability checks within a scene
+/// Tests a specific stat against a difficulty check
 struct SkillCheckConfig: Sendable {
     let stat: StatType
     let difficultyDC: Int
@@ -25,6 +35,8 @@ struct SkillCheckConfig: Sendable {
     let failureSceneID: String
 }
 
+/// Represents a single Act in the narrative campaign
+/// Contains multiple scenes that comprise a chapter
 struct Act: Identifiable, Sendable {
     let id: Int
     let title: String
@@ -32,6 +44,8 @@ struct Act: Identifiable, Sendable {
     let scenes: [GameScene]
 }
 
+/// A single scene in the game world
+/// Can be exploration, dialogue, combat, or skill check based
 struct GameScene: Identifiable, Sendable {
     let id: String
     let actIndex: Int
@@ -58,6 +72,7 @@ struct GameScene: Identifiable, Sendable {
     }
 }
 
+/// A selectable choice presented to the player in a scene
 struct SceneChoice: Codable, Identifiable, Sendable {
     let id: String
     let key: String
@@ -66,40 +81,58 @@ struct SceneChoice: Codable, Identifiable, Sendable {
 
 // MARK: — Enemy presets
 
+/// Pre-configured enemy definitions used throughout the campaign
+/// Factory methods generate unique instances with parameterized IDs
 private enum EnemyPreset {
+    /// Weak melee enemies encountered early game
+    /// High DEX for quick attacks, low stats overall
     static func goblinScout(_ n: Int) -> Enemy {
         Enemy(id: "goblin_scout_\(n)", name: "Goblin Scout", emoji: "👺",
               hp: 18, maxHP: 18, atk: 5, def: 2, dex: 8)
     }
+    /// Mid-game ghost enemy with balanced stats
     static let shadowWraith = Enemy(id: "shadow_wraith", name: "Shadow Wraith", emoji: "👻",
                                     hp: 35, maxHP: 35, atk: 8, def: 3, dex: 7)
+    /// Underdark crawlers - melee threats with moderate difficulty
     static func darkPatrol(_ n: Int) -> Enemy {
         Enemy(id: "dark_patrol_\(n)", name: "Underdark Crawler", emoji: "🦂",
               hp: 28, maxHP: 28, atk: 9, def: 5, dex: 6)
     }
+    /// Mid-game fungal enemy with high defense but low speed
     static let sporeGuardian = Enemy(id: "spore_guardian", name: "Spore Guardian", emoji: "🍄",
                                      hp: 40, maxHP: 40, atk: 7, def: 8, dex: 3)
+    /// Act 3 mirror encounters - reflections of party members
     static func mirrorSelf(_ n: Int) -> Enemy {
         Enemy(id: "mirror_self_\(n)", name: "Mirror Shade", emoji: "🪞",
               hp: 30, maxHP: 30, atk: 10, def: 4, dex: 9)
     }
+    /// Act 3+ elite enemy with high attack and dexterity
     static func drow(_ n: Int) -> Enemy {
         Enemy(id: "drow_\(n)", name: "Drow Warrior", emoji: "🧝",
               hp: 38, maxHP: 38, atk: 11, def: 7, dex: 10)
     }
+    /// Act 4 guardian boss - extremely high HP and defense
     static let ancientGuardian = Enemy(id: "ancient_guardian", name: "Ancient Guardian", emoji: "🗿",
                                        hp: 70, maxHP: 70, atk: 14, def: 12, dex: 5)
+    /// Act 4 final boss - the main antagonist
     static let darkEntityP1 = Enemy(id: "dark_entity_p1", name: "Void Harbinger", emoji: "🌑",
                                     hp: 90, maxHP: 90, atk: 16, def: 8, dex: 10)
+    /// Act 5 encounter used for specific ending paths
     static let reflectionEnemy = Enemy(id: "reflection_beast", name: "Corruption Wraith", emoji: "💀",
                                        hp: 45, maxHP: 45, atk: 12, def: 6, dex: 8)
 }
 
 // MARK: — StoryContent
 
+/// Central repository for all campaign content
+/// Provides access to all 5 acts and their scenes through static methods
 struct StoryContent {
+    /// All acts in order of campaign progression
     static let acts: [Act] = [act1, act2, act3, act4, act5]
 
+    /// Retrieves a scene by its unique ID from any act
+    /// - Parameter id: Scene identifier (e.g., "act1_scene1")
+    /// - Returns: GameScene if found, nil otherwise
     static func scene(id: String) -> GameScene? {
         acts.flatMap(\.scenes).first(where: { $0.id == id })
     }
