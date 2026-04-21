@@ -183,6 +183,8 @@ Four scene types drive the narrative:
 
 ## Architecture
 
+<img width="468" height="976" alt="Gemini_Generated_Image_tk4b88tk4b88tk4b (1)" src="https://github.com/user-attachments/assets/f41ba846-c3a4-4434-b78a-8080e2538df8" />
+
 The app follows a strict MVVM architecture with a service-oriented domain layer, enforcing Swift 6 strict concurrency via `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`.
 
 ### View Layer (SwiftUI)
@@ -481,6 +483,7 @@ erDiagram
 ---
 
 ## Use Case Diagram
+<img width="1208" height="668" alt="Use case" src="https://github.com/user-attachments/assets/69b7a3bc-7b9c-47ad-9e29-2b6abda0e928" />
 
 **Figure-2: Use Case Diagram of StoryWeave App**
 
@@ -565,6 +568,8 @@ flowchart TD
 ---
 
 ## Activity Diagram
+
+<img width="368" height="876" alt="Gemini_Generated_Image_14yir114yir114yi" src="https://github.com/user-attachments/assets/1a98af00-045c-458b-b28a-0ce8ebca547c" />
 
 **Figure-3: Activity Diagram of StoryWeave App**
 
